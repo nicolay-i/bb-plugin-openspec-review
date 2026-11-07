@@ -6,7 +6,7 @@ import plugin from "../server.ts";
 
 const temp = resolve(process.cwd(), ".tmp/backend-tests");
 mkdirSync(temp, { recursive: true }); process.env.TMPDIR = temp;
-let missing = false; let failSend = false; let sendCalls = 0; let archiveCalls = 0; let sentText = ""; let sendMode = ""; let sendResult: any = {}; let queueRows: any[] = []; let historyRows: any[] = [];
+let missing = false; let failSend = false; let sendCalls = 0; let archiveCalls = 0; let sentText = ""; let sentInput: any[] = []; let sendMode = ""; let sendResult: any = {}; let queueRows: any[] = []; let historyRows: any[] = [];
 const scope = { projectId: "project", environmentId: "env" };
 const makeThread = (id: string) => makeThreadResponse({ id, projectId: "project", environmentId: id === "foreign" ? "other-env" : "env", title: id });
 const fake = createFakePluginHost({
@@ -21,7 +21,7 @@ const fake = createFakePluginHost({
         { thread: makeThread("b"), matches: [{ text: "a simple fuzzy hit" }] },
         { thread: { ...makeThread("x"), projectId: "other" }, matches: [{ text: "sample" }] },
       ] }, archived: { total: 0, results: [] } }) as any,
-      send: async (input: any) => { sendCalls++; sentText = input.input[0].text; sendMode = input.mode; if (failSend) throw new Error("connection lost"); return typeof sendResult === "function" ? sendResult() : sendResult; },
+      send: async (input: any) => { sendCalls++; sentInput = input.input; sentText = input.input.map((part: any) => part.text).join("\n"); sendMode = input.mode; if (failSend) throw new Error("connection lost"); return typeof sendResult === "function" ? sendResult() : sendResult; },
       queuedMessages: { list: async () => queueRows, delete: async ({ queuedMessageId }: any) => { if (!queueRows.some(r => r.id === queuedMessageId)) throw new Error("HTTP 404: Queued message not found"); queueRows = queueRows.filter(r => r.id !== queuedMessageId); return { ok: true }; } } as any,
       promptHistory: async () => historyRows,
       archive: async () => { archiveCalls++; throw new Error("must never archive chats"); },
@@ -52,6 +52,8 @@ try {
   await call("send", { ...scope, docId: opened.docId, threadId: "a", ids: [firstId] });
   assert.equal(sendMode, "queue-if-active");
   assert.ok(sentText.includes(firstId) && sentText.includes("\"Proposal\"") && sentText.includes("Clarify scope") && sentText.includes(`bb openspec-review review resolve`));
+  assert.equal(sentInput[1].visibility, "agent-only", "ids and instructions stay out of the chat bubble");
+  assert.ok(sentInput[0].text.startsWith("**Comments on proposal.md · 1**") && sentInput[0].text.includes("> Proposal") && !sentInput[0].text.includes(firstId));
   await assert.rejects(() => call("send", { ...scope, docId: opened.docId, threadId: "a", ids: [firstId] }), /invalid_delivery_selection/, "only open comments are queued");
   assert.equal((await current.harness.behavior.runCli(["review", "resolve", firstId], { threadId: "b" })).exitCode, 1, "other thread cannot close");
   assert.equal((await current.harness.behavior.runCli(["review", "resolve", firstId], { threadId: "a" })).exitCode, 0);
@@ -99,8 +101,8 @@ try {
   // Queue events missed while unloaded: reload settles from BB's queue and prompt history.
   const live = await call("open", { ...scope, path: opened.path });
   const [keep, gone, done] = await Promise.all(["keep", "gone", "done"].map(body => call("create", { ...scope, docId: live.docId, anchor: { kind: "doc" }, body })));
-  for (const [c, q] of [[keep, "q-keep"], [gone, "q-gone"], [done, "q-done"]]) { sendResult = { ok: true, delivery: "queued", queuedMessage: { id: q } }; await call("send", { ...scope, docId: live.docId, threadId: "a", ids: [c.id] }); }
-  sendResult = {}; queueRows = [{ id: "q-keep" }]; historyRows = [{ input: [{ type: "text", text: `Review comments\n\n[${done.id}] Whole document\ndone` }] }];
+  for (const [c, q] of [[keep, "q-keep"], [gone, "q-gone"], [done, "q-done"]]) { sendResult = { ok: true, delivery: "queued", queuedMessage: { id: q } }; await call("send", { ...scope, docId: live.docId, threadId: "a", ids: [c.id] }); if (c === done) historyRows = [{ input: [sentInput[0]] }]; }
+  sendResult = {}; queueRows = [{ id: "q-keep" }]; // BB history keeps only the visible bubble, not the agent-only part.
   current = await current.harness.lifecycle.reload(plugin);
   const statuses = async () => Object.fromEntries((await call("open", { ...scope, path: opened.path })).comments.map((c: any) => [c.id, c.status]));
   for (let i = 0; i < 50 && (await statuses())[done.id] === "queued"; i++) await new Promise(r => setTimeout(r, 20));

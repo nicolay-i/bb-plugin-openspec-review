@@ -1,32 +1,24 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Проект: BB-плагин `openspec-review` (публичный репо github.com/nicolay-i/bb-plugin-openspec-review, MIT).
+  Показывает спеки и изменения OpenSpec проекта треда, даёт ревью Markdown с комментариями,
+  которые ставятся в очередь текущего BB-треда; агент закрывает их `bb openspec review resolve <id>`.
+  Стек: TypeScript, Bun (скрипты/тесты), React (app.tsx, ui/), BB plugin SDK (server.ts, host.ts),
+  SQLite в данных плагина (src/store), OpenSpec CLI 1.9 на хосте окружения (контракт — tests/fixtures).
+  Распространение: git-тег vX.Y.Z, маркетплейс get-bb/marketplace (entry с диапазоном ^0.1.0).
+  Проверки: `bun run typecheck`, `bun run test`, `bb plugin build .`; UI — tests/browser-matrix.ts и скриншоты.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
-
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+rules:
+  proposal:
+    - Писать по-русски; ключевые слова OpenSpec (SHALL, WHEN/THEN, Requirement, Scenario) — как требует валидатор.
+    - Заголовки разделов только английские (## Why, ## What Changes, ## Capabilities, ## Impact): иначе `openspec show` падает, а `validate` этого не ловит.
+    - Явно перечислять «Вне скоупа».
+  design:
+    - Без fallback-путей и деградаций; один путь или явная ошибка.
+  specs:
+    - MODIFIED-блок содержит все сценарии текущего требования; удаление сценария — отдельным REMOVED/переименованием требования.
+  tasks:
+    - Одна задача — один коммит; коммиты и публикация только по просьбе пользователя.
+    - В конце задачи проверки typecheck, test и bb plugin build.
+    - Публикация (push, тег, PR маркетплейса) — отдельными задачами с показом команд до выполнения.

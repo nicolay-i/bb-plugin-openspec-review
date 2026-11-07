@@ -13,6 +13,7 @@
 @container openspec-workspace (min-width: 720px) {
   .openspec-review.openspec-show-comments { grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem); }
   .openspec-review.openspec-show-comments > .openspec-doc { display: block; }
+  .openspec-review.openspec-show-comments > .openspec-comments { align-self: stretch; border-left: 1px solid var(--border); padding-left: 1rem; }
 }
 .openspec-markdown { overflow-wrap: anywhere; }
 .openspec-markdown pre { overflow-x: auto; max-width: 100%; }

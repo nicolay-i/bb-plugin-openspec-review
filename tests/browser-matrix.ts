@@ -44,7 +44,7 @@ try {
     assert.ok(await root.evaluate(e => e.scrollWidth <= e.clientWidth), 'Document overflow');
     await root.screenshot({ path: `${out}/panel-${width}.png` });
     // Comments column: replaces the document when narrow, sits beside it from 720px.
-    const toggle = page.getByRole('button', { name: /^Comments · \d+$/ });
+    const toggle = page.getByRole('button', { name: /^Show comments · \d+$/ });
     await toggle.click();
     await page.locator('.openspec-comments').waitFor();
     assert.equal(await page.locator('.openspec-doc').isVisible(), width >= 720, 'Document beside comments only when wide');

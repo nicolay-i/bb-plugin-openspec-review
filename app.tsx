@@ -241,7 +241,7 @@ function ReviewDocument({ scope, path, threadId, toolbar, t }: { scope: Scope; p
     {query.loading && <Notice>{t.loading}</Notice>}
     {data && <>
       {toolbar && createPortal(<>
-        <Button variant={showComments ? "secondary" : "outline"} size="sm" aria-pressed={showComments} onClick={() => setShowComments(!showComments)}>{t.comments} · {comments.length}</Button>
+        <Button variant={showComments ? "secondary" : "outline"} size="sm" aria-pressed={showComments} onClick={() => setShowComments(!showComments)}>{showComments ? t.hideComments : t.showComments} · {comments.length}</Button>
         {!data.missing && open.length > 0 && <Button size="sm" disabled={action.pending} onClick={() => action.run(async () => { await rpc.call("send", { ...scope, docId: data.docId, threadId, ids: open.map(c => c.id) }); query.refresh(); })}>{action.pending ? t.sending : `${t.sendAll} (${open.length})`}</Button>}
       </>, toolbar)}
       <div className={`openspec-review ${showComments ? "openspec-show-comments" : ""}`}>

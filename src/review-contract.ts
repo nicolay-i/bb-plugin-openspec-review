@@ -1,6 +1,7 @@
 import { defineRpcContract } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { documentSchema, scopeSchema } from "./contracts.js";
+import { languages } from "./i18n.js";
 
 const id = z.string().min(1).max(200);
 export const anchorSchema = z.discriminatedUnion("kind", [
@@ -18,5 +19,5 @@ export const reviewContract = defineRpcContract({
   edit: { input: scopeSchema.extend({ id, body: z.string().trim().min(1).max(8000) }), output: commentSchema },
   close: { input: scopeSchema.extend({ id }), output: commentSchema },
   remove: { input: scopeSchema.extend({ id }), output: z.null() },
-  send: { input: scopeSchema.extend({ docId: id, threadId: id, ids: z.array(id).min(1).max(50) }), output: z.null() },
+  send: { input: scopeSchema.extend({ docId: id, threadId: id, ids: z.array(id).min(1).max(50), language: z.enum(languages) }), output: z.null() },
 });

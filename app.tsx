@@ -5,7 +5,7 @@ import { definePluginApp, experimental_useAppPanel, useBbNavigate, useRpc, useSd
 import type { rpcContract } from "./server";
 import type { Item, Scope, Snapshot } from "./src/contracts";
 import type { Anchor, Comment } from "./src/review-contract";
-import { describeError, plural, strings, type Strings } from "./src/i18n";
+import { describeError, plural, resolveLanguage, strings, type Strings } from "./src/i18n";
 import { useLive } from "./ui/use-live";
 import { itemExists, planningProgress } from "./src/progress";
 import { MarkdownReview } from "./ui/markdown-review";
@@ -39,7 +39,7 @@ function useThreadScope(threadId: string) {
 // OpenSpec's lastModified is the newest file mtime in the change folder: the change being worked on now.
 const latestChange = (changes: Snapshot["changes"] = []) => changes.reduce<Snapshot["changes"][number] | undefined>((a, c) => !a || Date.parse(c.lastModified) > Date.parse(a.lastModified) ? c : a, undefined);
 function Workspace({ threadId, path, change }: { threadId: string; path?: string; change?: string }) {
-  const { values } = useSettings(); const t = strings(values?.language);
+  const { values } = useSettings(); const t = strings(resolveLanguage(values?.language, navigator.languages));
   const { thread, scope } = useThreadScope(threadId);
   return <main className="openspec-workspace h-full overflow-y-auto p-3">
     <div className="space-y-4">
@@ -242,7 +242,7 @@ function ReviewDocument({ scope, path, threadId, toolbar, t }: { scope: Scope; p
     {data && <>
       {toolbar && createPortal(<>
         <Button variant={showComments ? "secondary" : "outline"} size="sm" aria-pressed={showComments} onClick={() => setShowComments(!showComments)}>{showComments ? t.hideComments : t.showComments} · {comments.length}</Button>
-        {!data.missing && open.length > 0 && <Button size="sm" disabled={action.pending} onClick={() => action.run(async () => { await rpc.call("send", { ...scope, docId: data.docId, threadId, ids: open.map(c => c.id) }); query.refresh(); })}>{action.pending ? t.sending : `${t.sendAll} (${open.length})`}</Button>}
+        {!data.missing && open.length > 0 && <Button size="sm" disabled={action.pending} onClick={() => action.run(async () => { await rpc.call("send", { ...scope, docId: data.docId, threadId, ids: open.map(c => c.id), language: t.locale }); query.refresh(); })}>{action.pending ? t.sending : `${t.sendAll} (${open.length})`}</Button>}
       </>, toolbar)}
       <div className={`openspec-review ${showComments ? "openspec-show-comments" : ""}`}>
         <div ref={doc} className="openspec-doc min-w-0">
@@ -261,7 +261,7 @@ function ReviewDocument({ scope, path, threadId, toolbar, t }: { scope: Scope; p
 function Comments({ scope, docId, comments, missing, detached, threadId, activeId, t, onSelect, onChanged }: { scope: Scope; docId: string; comments: Comment[]; missing: boolean; detached: Set<string>; threadId: string; activeId: string | null; t: Strings; onSelect: (id: string) => void; onChanged: () => void }) {
   const rpc = useRpc<typeof rpcContract>(); const action = useAction();
   const act = (call: () => Promise<unknown>) => action.run(async () => { await call(); onChanged(); });
-  const send = (ids: string[]) => act(() => rpc.call("send", { ...scope, docId, threadId, ids }));
+  const send = (ids: string[]) => act(() => rpc.call("send", { ...scope, docId, threadId, ids, language: t.locale }));
   const small = "h-7 px-2 text-xs";
   return <aside className="openspec-comments flex min-w-0 flex-col gap-2" aria-label={t.comments}>
     <ErrorBox error={action.error} t={t} />
@@ -295,7 +295,7 @@ const paramChange = (params: JsonValue | null) => params && typeof params === "o
 // Chat header: jump to the latest change, or pick another active one. Hidden where the thread has no OpenSpec root or it fails to load.
 function HeaderAction({ threadId, isCompactViewport }: PluginThreadHeaderActionProps) {
   const rpc = useRpc<typeof rpcContract>(); const panel = experimental_useAppPanel();
-  const { values } = useSettings(); const t = strings(values?.language);
+  const { values } = useSettings(); const t = strings(resolveLanguage(values?.language, navigator.languages));
   const { scope } = useThreadScope(threadId);
   const snapshot = useLive(useCallback(() => scope ? rpc.call("snapshot", scope) : Promise.resolve(null), [rpc, scope]), false, scope ? `snapshot:${JSON.stringify(scope)}` : undefined);
   const changes = snapshot.data?.changes ?? [];

@@ -1,6 +1,6 @@
 # OpenSpec Review for BB
 
-Browse the OpenSpec specifications, active changes and archive of a chat's checkout, and review their Markdown with quoted comments that you send to the agent. English and Russian UI.
+Browse the OpenSpec specifications, active changes and archive of a chat's checkout, and review their Markdown with quoted comments that you send to the agent. UI in English, 简体中文, Español, Português (Brasil), 日本語, Deutsch, Français, Русский, 한국어 and हिन्दी; Auto follows the browser language.
 
 ## Install
 

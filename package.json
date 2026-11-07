@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-openspec-review",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browse OpenSpec specs and changes in BB and review their Markdown with comments sent to the agent.",
   "license": "MIT",
   "repository": {

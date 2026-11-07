@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import Database from "better-sqlite3";
 import { Store, migrations } from "../src/store.ts";
-import { en, plural, ru } from "../src/i18n.ts";
+import { dictionaries, en, plural, resolveLanguage, ru } from "../src/i18n.ts";
 const db = new Database(":memory:");
 for (const sql of migrations) db.exec(sql);
 const store = new Store(db);
@@ -40,8 +40,18 @@ assert.notEqual(archive.id, doc.id);
 assert.equal(store.comments(archive.id).length, 0);
 const otherHost = store.observe("other", doc.path, false, "v3");
 assert.notEqual(otherHost.id, newDoc.id);
-assert.deepEqual(Object.keys(en).sort(), Object.keys(ru).sort());
-assert.ok(Object.values(ru).every(value => value.length > 0));
+for (const [code, dict] of Object.entries(dictionaries)) {
+  assert.deepEqual(Object.keys(dict).sort(), Object.keys(en).sort(), code);
+  assert.ok(Object.values(dict).every(value => value.trim().length > 0), code);
+  assert.equal(dict.locale, code);
+  assert.match(plural(dict, 2, dict.commentForms), /^2 \S/, code);
+}
+assert.equal(resolveLanguage("auto", ["de-AT", "en"]), "de");
+assert.equal(resolveLanguage("auto", ["zh-TW"]), "zh-CN");
+assert.equal(resolveLanguage("auto", ["pt-PT", "ru"]), "pt-BR");
+assert.equal(resolveLanguage("auto", ["ar"]), "en");
+assert.equal(resolveLanguage("ru", ["de"]), "ru");
+assert.equal(resolveLanguage(undefined, []), "en");
 assert.deepEqual([1, 2, 5, 21].map(n => plural(ru, n, ru.commentForms)), ["1 комментарий", "2 комментария", "5 комментариев", "21 комментарий"]);
 assert.deepEqual([1, 2].map(n => plural(en, n, en.commentForms)), ["1 comment", "2 comments"]);
 db.close();
@@ -54,4 +64,4 @@ for (const sql of migrations.slice(7)) old.exec(sql);
 assert.deepEqual(new Store(old).comments("d").map(c => c.status), ["open", "sent", "sent", "closed"]);
 assert.equal(old.prepare("SELECT count(*) AS n FROM sqlite_master WHERE name IN ('replies','links')").get().n, 0);
 old.close();
-console.log("Store: open/sent/closed, delete, generations, independent archives, status migration and EN/RU keys OK.");
+console.log("Store: open/sent/closed, delete, generations, independent archives, status migration, locale keys and language resolution OK.");

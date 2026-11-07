@@ -3,12 +3,13 @@ import { hostContract, hostSignals, rpcContract as workspaceContract, type Scope
 import { reviewContract } from "./src/review-contract.js";
 import { resolveContext } from "./src/context.js";
 import { migrations, Store } from "./src/store.js";
-import { en, ru, strings, type Strings } from "./src/i18n.js";
+import { dictionaries, languageNames, strings, type Strings } from "./src/i18n.js";
 import type { Comment } from "./src/review-contract.js";
 
 export const rpcContract = { ...workspaceContract, ...reviewContract };
 export default function plugin(bb: BbPluginApi) {
-  const settings = bb.settings.define({ language: { type: "select", label: "Interface language / Язык интерфейса", options: ["en", "ru"], default: "en" } });
+  // Read by the UI only: "auto" is resolved from the browser there, and send() receives the resolved language.
+  bb.settings.define({ language: { type: "select", label: "Interface language", options: Object.keys(languageNames), experimental_optionLabels: languageNames, default: "auto" } });
   const host = bb.hosts.experimental_client({ contract: hostContract, experimental_signals: hostSignals });
   bb.onDispose(host.experimental_onSignal("changed", () => bb.realtime.publish("changed", {})));
   const db = bb.storage.database();
@@ -32,11 +33,13 @@ export default function plugin(bb: BbPluginApi) {
         const prompts = new Set(history.flatMap(entry => entry.input.flatMap(part => part.type === "text" ? [part.text] : [])));
         for (const queuedId of new Set(rows.map(row => row.queuedId))) {
           if (queue.some(entry => entry.id === queuedId)) continue;
-          // History keeps only the visible bubble: rebuild it (queued comments are not editable) in either interface language.
+          // History keeps only the visible bubble: rebuild it (queued comments are not editable) in any interface language.
           const comments = rows.filter(row => row.queuedId === queuedId).map(row => store.comment(row.id)).sort((a, b) => a.seq - b.seq);
           const path = store.doc(comments[0].docId).path;
           // shortcut: prompt history is capped, so a delivery that scrolled out of it reads as cancelled; fine for downtime-sized gaps.
-          store[[en, ru].some(t => prompts.has(bubbleText(t, path, comments))) ? "dispatched" : "cancelled"](queuedId);
+          // 0.1.0 sent one text part tagged with "[<comment id>]"; such messages can still sit in BB's queue across the update.
+          const legacy = [...prompts].some(text => comments.some(c => text.includes(`[${c.id}]`)));
+          store[legacy || Object.values(dictionaries).some(t => prompts.has(bubbleText(t, path, comments))) ? "dispatched" : "cancelled"](queuedId);
         }
         changed();
       } catch (error) { bb.log.warn(`openspec: queue reconcile failed for ${threadId}: ${error instanceof Error ? error.message : String(error)}`); }
@@ -124,7 +127,7 @@ export default function plugin(bb: BbPluginApi) {
       await dequeue(id);
       store.remove(id); changed(); return null;
     },
-    async send({ docId, threadId, ids, ...scope }) {
+    async send({ docId, threadId, ids, language, ...scope }) {
       if (new Set(ids).size !== ids.length) throw new Error("duplicate_comment_ids");
       if (ids.some(id => sending.has(id))) throw new Error("delivery_in_progress");
       ids.forEach(id => sending.add(id));
@@ -135,7 +138,7 @@ export default function plugin(bb: BbPluginApi) {
       const file = await host.call("document", { ...ctx.input, path: ctx.doc.path }, { hostId: ctx.hostId });
       store.observe(ctx.key, ctx.doc.path, file.missing, file.version);
       if (store.doc(docId).missing) throw new Error("document_missing");
-      const bubble = bubbleText(strings((await settings.get()).language), ctx.doc.path, comments);
+      const bubble = bubbleText(strings(language), ctx.doc.path, comments);
       const prompt = [
         `Review comments on ${ctx.doc.path}`,
         `OpenSpec root: ${ctx.root}.`,

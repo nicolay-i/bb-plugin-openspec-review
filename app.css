@@ -1,0 +1,19 @@
+::highlight(openspec-review-comment) { background: color-mix(in srgb, var(--primary) 18%, transparent); }
+::highlight(openspec-review-pending) { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+/* In the floating form the pending highlight already shows the quote in place. */
+.openspec-floating .openspec-quote { display: none; }
+.openspec-workspace { container: openspec-workspace / inline-size; }
+.openspec-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.openspec-secondary { display: none; }
+/* Stick at the scroller edge, not below its p-3 padding: otherwise scrolled text shows through the gap above. */
+.openspec-toolbar { position: sticky; top: -0.75rem; margin-top: -0.75rem; padding: 0.75rem 0 0.5rem; z-index: 5; background: var(--background); border-bottom: 1px solid var(--border); }
+/* Comments column: beside the document when the panel fits, instead of it when narrow. */
+.openspec-review { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.openspec-review.openspec-show-comments > .openspec-doc { display: none; }
+@container openspec-workspace (min-width: 720px) {
+  .openspec-review.openspec-show-comments { grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem); }
+  .openspec-review.openspec-show-comments > .openspec-doc { display: block; }
+}
+.openspec-markdown { overflow-wrap: anywhere; }
+.openspec-markdown pre { overflow-x: auto; max-width: 100%; }
+.openspec-scenario ul { list-style: none; padding-left: 0; }

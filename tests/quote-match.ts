@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import { uniqueQuoteOffset } from "../ui/quote-match.ts";
+assert.equal(uniqueQuoteOffset("Alpha requirement Omega", "requirement"), 6);
+assert.equal(uniqueQuoteOffset("Moved. Alpha requirement Omega", "requirement", "Alpha", "Omega"), 13);
+assert.equal(uniqueQuoteOffset("Alpha deleted Omega", "requirement"), null);
+assert.equal(uniqueQuoteOffset("X same A. Y same B.", "same"), null);
+assert.equal(uniqueQuoteOffset("X same A. Y same B.", "same", "Y", "B."), 12);
+assert.equal(uniqueQuoteOffset("X same A. Y same B.", "same", "Z"), null);
+assert.equal(uniqueQuoteOffset("Access ACCESS", "access"), null, "no case-insensitive guessing");
+assert.equal(uniqueQuoteOffset("hello world", "hello\n world"), 0);
+assert.equal(uniqueQuoteOffset("same same", " "), null);
+console.log("Quote anchors: moved, removed, ambiguous, context-disambiguated and exact case-sensitive matches OK.");

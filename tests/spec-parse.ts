@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { parseSpec } from "../ui/spec-parse.ts";
+assert.equal(parseSpec("# Plain\n\n## Section"), null, "non-spec Markdown renders as before");
+const blocks = parseSpec(["# Title", "", "## Purpose", "Why.", "", "## MODIFIED Requirements", "### Requirement: A", "Body A", "#### Scenario: S1", "- **WHEN** x", "```", "#### Scenario: not a heading", "```", "#### Scenario: S2", "- **THEN** y", "", "## ADDED Requirements", "### Requirement: B", "Body B"].join("\n"))!;
+assert.equal(blocks.length, 3);
+assert.ok("markdown" in blocks[0]! && blocks[0].markdown.includes("## Purpose"), "non-delta sections keep their heading");
+const [a, b] = blocks.slice(1) as any[];
+assert.deepEqual([a.title, a.delta, a.body.trim(), a.scenarios.map((s: any) => s.title)], ["Requirement: A", "MODIFIED", "Body A", ["Scenario: S1", "Scenario: S2"]]);
+assert.ok(a.scenarios[0].body.includes("not a heading"), "headings inside code fences stay text");
+assert.deepEqual([b.title, b.delta], ["Requirement: B", "ADDED"]);
+console.log("Spec view: requirements, delta labels, scenarios and fenced code OK.");

@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import { planningProgress, itemExists } from "../src/progress.ts";
+const artifact = (id: string, status: "done" | "ready" | "blocked" | "skipped", requires: string[] = []) => ({ id, status, outputPath: `${id}.md`, requires });
+assert.deepEqual(planningProgress([artifact("proposal", "done"), artifact("research", "ready", ["proposal"]), artifact("specs", "skipped"), artifact("tasks", "blocked", ["research"])]), { complete: 1, total: 3 });
+assert.deepEqual(planningProgress([artifact("research", "done"), artifact("tasks", "done")]), { complete: 2, total: 2 });
+const snapshot = { root: "/root", version: "1.9.0", specs: [{ id: "identity/auth", requirementCount: 1 }], changes: [{ name: "new-auth", completedTasks: 0, totalTasks: 0, lastModified: "", status: "no-tasks" as const }], archive: [] };
+assert.ok(itemExists(snapshot, { kind: "spec", id: "identity/auth" }));
+assert.ok(itemExists(snapshot, { kind: "change", id: "new-auth" }));
+assert.ok(!itemExists(snapshot, { kind: "archive", id: "new-auth" }));
+snapshot.changes = [];
+assert.ok(!itemExists(snapshot, { kind: "change", id: "new-auth" }));
+console.log("Progress: custom/skipped/blocked artifacts, no tasks and vanished items OK.");

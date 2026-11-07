@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { liveRequest } from "../ui/live-request.ts";
+const values: string[] = []; const errors: unknown[] = []; let completed = 0; let loads = 0;
+let resolve!: (value: string) => void; let aborted = false;
+const old = liveRequest(signal => { loads++; signal.addEventListener("abort", () => { aborted = true; }); return new Promise<string>(r => { resolve = r; }); }, v => values.push(v), e => errors.push(e), () => completed++);
+const first = old.run(); await old.run(); await old.run();
+assert.equal(loads, 1, "no parallel loads");
+old.dispose(); resolve("old environment"); await first;
+assert.ok(aborted); assert.deepEqual(values, []); assert.equal(completed, 0);
+const fresh = liveRequest(async () => "new environment", v => values.push(v), e => errors.push(e), () => completed++);
+await fresh.run(); assert.deepEqual(values, ["new environment"]);
+const failed = liveRequest(async () => { throw new Error("offline"); }, v => values.push(v), e => errors.push(e), () => completed++);
+await failed.run(); assert.equal(errors.length, 1); assert.deepEqual(values, ["new environment"], "a refresh error must preserve successful data");
+fresh.dispose(); failed.dispose();
+console.log("Live reads: single in-flight request, disposal abort, late reply rejection and retained successful data OK.");

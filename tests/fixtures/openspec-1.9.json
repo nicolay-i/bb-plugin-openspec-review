@@ -1,0 +1,163 @@
+{
+  "version": "1.9.0",
+  "empty": {
+    "changes": [],
+    "root": {
+      "path": "<ROOT>",
+      "source": "nearest"
+    }
+  },
+  "custom-status": {
+    "changeName": "sample-change",
+    "schemaName": "review-first",
+    "planningHome": {
+      "kind": "repo",
+      "root": "<ROOT>",
+      "changesDir": "<ROOT>/openspec/changes",
+      "defaultSchema": "spec-driven"
+    },
+    "changeRoot": "<ROOT>/openspec/changes/sample-change",
+    "artifactPaths": {
+      "proposal": {
+        "outputPath": "proposal.md",
+        "resolvedOutputPath": "<ROOT>/openspec/changes/sample-change/proposal.md",
+        "existingOutputPaths": []
+      },
+      "research": {
+        "outputPath": "research.md",
+        "resolvedOutputPath": "<ROOT>/openspec/changes/sample-change/research.md",
+        "existingOutputPaths": []
+      },
+      "tasks": {
+        "outputPath": "tasks.md",
+        "resolvedOutputPath": "<ROOT>/openspec/changes/sample-change/tasks.md",
+        "existingOutputPaths": []
+      }
+    },
+    "isPlanningComplete": false,
+    "isComplete": false,
+    "applyRequires": [
+      "tasks"
+    ],
+    "nextSteps": [
+      "Run openspec instructions proposal --change \"sample-change\" --json before writing that artifact."
+    ],
+    "actionContext": {
+      "mode": "repo-local",
+      "sourceOfTruth": "repo",
+      "planningArtifacts": [
+        "proposal",
+        "research",
+        "tasks"
+      ],
+      "linkedContext": [],
+      "allowedEditRoots": [
+        "<ROOT>"
+      ],
+      "requiresAffectedAreaSelection": false,
+      "constraints": [
+        "Repo-local change artifacts and implementation edits are scoped to this project."
+      ]
+    },
+    "artifacts": [
+      {
+        "id": "proposal",
+        "outputPath": "proposal.md",
+        "status": "ready",
+        "requires": []
+      },
+      {
+        "id": "research",
+        "outputPath": "research.md",
+        "status": "blocked",
+        "requires": [
+          "proposal"
+        ],
+        "missingDeps": [
+          "proposal"
+        ]
+      },
+      {
+        "id": "tasks",
+        "outputPath": "tasks.md",
+        "status": "blocked",
+        "requires": [
+          "research"
+        ],
+        "missingDeps": [
+          "research"
+        ]
+      }
+    ],
+    "root": {
+      "path": "<ROOT>",
+      "source": "nearest"
+    }
+  },
+  "spec-list": {
+    "specs": [
+      {
+        "id": "identity/auth",
+        "requirementCount": 1
+      }
+    ],
+    "root": {
+      "path": "<ROOT>",
+      "source": "nearest"
+    }
+  },
+  "change-list": {
+    "changes": [
+      {
+        "name": "sample-change",
+        "completedTasks": 1,
+        "totalTasks": 2,
+        "lastModified": "2026-11-07T11:44:32.383Z",
+        "status": "in-progress"
+      }
+    ],
+    "root": {
+      "path": "<ROOT>",
+      "source": "nearest"
+    }
+  },
+  "apply": {
+    "changeName": "sample-change",
+    "changeDir": "<ROOT>/openspec/changes/sample-change",
+    "schemaName": "review-first",
+    "contextFiles": {
+      "proposal": [
+        "<ROOT>/openspec/changes/sample-change/proposal.md"
+      ],
+      "research": [
+        "<ROOT>/openspec/changes/sample-change/research.md"
+      ],
+      "tasks": [
+        "<ROOT>/openspec/changes/sample-change/tasks.md"
+      ]
+    },
+    "progress": {
+      "total": 2,
+      "complete": 1,
+      "remaining": 1
+    },
+    "tasks": [
+      {
+        "id": "1",
+        "description": "1.1 Complete",
+        "done": true
+      },
+      {
+        "id": "2",
+        "description": "1.2 Pending",
+        "done": false
+      }
+    ],
+    "state": "ready",
+    "instruction": "Complete tasks",
+    "root": {
+      "path": "<ROOT>",
+      "source": "nearest"
+    }
+  }
+}

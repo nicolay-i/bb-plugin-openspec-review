@@ -3,7 +3,7 @@ schema: spec-driven
 context: |
   Проект: BB-плагин `openspec-review` (публичный репо github.com/nicolay-i/bb-plugin-openspec-review, MIT).
   Показывает спеки и изменения OpenSpec проекта треда, даёт ревью Markdown с комментариями,
-  которые ставятся в очередь текущего BB-треда; агент закрывает их `bb openspec review resolve <id>`.
+  которые ставятся в очередь текущего BB-треда; агент закрывает их `bb openspec-review review resolve <id>`.
   Стек: TypeScript, Bun (скрипты/тесты), React (app.tsx, ui/), BB plugin SDK (server.ts, host.ts),
   SQLite в данных плагина (src/store), OpenSpec CLI 1.9 на хосте окружения (контракт — tests/fixtures).
   Распространение: git-тег vX.Y.Z, маркетплейс get-bb/marketplace (entry с диапазоном ^0.1.0).

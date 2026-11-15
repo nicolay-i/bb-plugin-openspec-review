@@ -20,7 +20,8 @@ Requirements:
 - The tab lists specifications, active changes and the archive. A change card shows artifacts, task progress, affected specs and chats that mention the change.
 - Markdown links into `openspec/` can open in the **OpenSpec review** file opener.
 - Select text and choose **Comment on selection**, or comment on the whole document. Comments are drafts until you choose **Send to chat**. Delivery queues behind active work; an unconfirmed delivery is not retried automatically.
-- The UI language is under **Installed plugins → OpenSpec Review → Interface language** (`en` or `ru`). Documents are not translated.
+- The pinned header keeps one **‹ back** button: from a document to its card, from a card to the list. Document actions stay there while you scroll.
+- The UI language is under **Installed plugins → OpenSpec Review → Interface language**: Auto (browser language, the default) or one of 10 languages. Documents are not translated.
 
 The plugin is a viewer and review surface. It does not run Propose, Apply or Archive and does not edit documents.
 

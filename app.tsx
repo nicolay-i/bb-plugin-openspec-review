@@ -81,7 +81,9 @@ function ScopedWorkspace({ scope, threadId, change, t }: { scope: Scope; threadI
   }, [showList, selected]);
   // Choosing from the list always opens the card, even for the already selected item.
   const [opened, setOpened] = useState(0);
-  const choose = (item: Item) => { setSelected(item); setShowList(false); setOpened(n => n + 1); };
+  // Open document of the selected item; kept here so the sticky toolbar's back button can leave it.
+  const [path, setPath] = useState("");
+  const choose = (item: Item) => { setSelected(item); setShowList(false); setPath(""); setOpened(n => n + 1); };
   const latest = latestChange(snapshot.data?.changes);
   const matches = (id: string) => id.toLocaleLowerCase().includes(search.toLocaleLowerCase());
   const groups = snapshot.data ? [
@@ -91,7 +93,9 @@ function ScopedWorkspace({ scope, threadId, change, t }: { scope: Scope; threadI
   ] : [];
   return <div className="space-y-3">
     <div className="openspec-toolbar flex flex-wrap items-start gap-2">
-      {selected && !showList && <Button variant="ghost" size="sm" onClick={() => setShowList(true)}>‹ {{ spec: t.specs, change: t.changes, archive: t.archive }[selected.kind]}</Button>}
+      {selected && !showList && (path
+        ? <Button variant="ghost" size="sm" className="max-w-56" onClick={() => setPath("")}><span className="truncate">‹ {t.backTo} {selected.id}</span></Button>
+        : <Button variant="ghost" size="sm" onClick={() => setShowList(true)}>‹ {{ spec: t.specs, change: t.changes, archive: t.archive }[selected.kind]}</Button>)}
       {latest && !(selected?.kind === "change" && selected.id === latest.name && !showList) && <Button variant="outline" size="sm" className="max-w-56" aria-label={`${t.latest}: ${latest.name}`} onClick={() => choose({ kind: "change", id: latest.name })}><span className="truncate">{t.latest}: {latest.name}</span></Button>}
       <div ref={setToolbar} className="ml-auto flex flex-wrap items-center gap-2" />
     </div>
@@ -107,7 +111,7 @@ function ScopedWorkspace({ scope, threadId, change, t }: { scope: Scope; threadI
         </section>)}
       </aside>
       <div className={`openspec-detail ${showList ? "openspec-secondary" : ""} min-w-0 space-y-4`}>
-        {selected ? <ItemDetail key={`${selected.kind}/${selected.id}/${opened}`} scope={scope} item={selected} snapshot={snapshot.data} threadId={threadId} toolbar={showList ? null : toolbar} t={t} />
+        {selected ? <ItemDetail key={`${selected.kind}/${selected.id}/${opened}`} scope={scope} item={selected} snapshot={snapshot.data} threadId={threadId} toolbar={showList ? null : toolbar} path={path} setPath={setPath} t={t} />
           : <Notice>{t.documents}</Notice>}
       </div>
     </div>
@@ -125,19 +129,17 @@ const deltaOps = ["ADDED", "MODIFIED", "REMOVED", "RENAMED"] as const;
 function itemBase(item: Item) {
   return item.kind === "spec" ? `openspec/specs/${item.id}/` : item.kind === "change" ? `openspec/changes/${item.id}/` : `openspec/changes/archive/${item.id}/`;
 }
-function ItemDetail({ scope, item, snapshot, threadId, toolbar, t }: { scope: Scope; item: Item; snapshot?: Snapshot; threadId: string; toolbar: HTMLElement | null; t: Strings }) {
+function ItemDetail({ scope, item, snapshot, threadId, toolbar, path, setPath, t }: { scope: Scope; item: Item; snapshot?: Snapshot; threadId: string; toolbar: HTMLElement | null; path: string; setPath: (p: string) => void; t: Strings }) {
   const rpc = useRpc<typeof rpcContract>();
   const detail = useLive(useCallback(() => rpc.call("detail", { ...scope, item }), [rpc, scope, item]), true, `detail:${JSON.stringify([scope, item])}`);
   const pathsKey = detail.data?.paths.join("\n") ?? "";
   const stats = useLive(useCallback(() => pathsKey ? rpc.call("reviewStats", { ...scope, paths: pathsKey.split("\n") }) : Promise.resolve([]), [rpc, scope, pathsKey]), false, `stats:${JSON.stringify([scope, pathsKey])}`);
-  const [path, setPath] = useState("");
   const heading = useRef<HTMLHeadingElement>(null); const switched = useRef(false);
   // The workspace focuses the first view; card ↔ document switches are focused here.
   useEffect(() => { if (switched.current) heading.current?.focus(); switched.current = true; }, [path]);
   const base = itemBase(item); const data = detail.data;
   const short = (p: string) => p.startsWith(base) ? p.slice(base.length) : p;
   if (path) return <section className="min-w-0 space-y-4">
-    <Button variant="ghost" size="sm" onClick={() => setPath("")}>‹ {t.backTo} {item.id}</Button>
     <h2 ref={heading} tabIndex={-1} className="break-all font-mono text-sm font-medium">{short(path)}</h2>
     <ReviewDocument key={path} scope={scope} path={path} threadId={threadId} toolbar={toolbar} t={t} />
   </section>;

@@ -167,6 +167,11 @@ function ItemDetail({ scope, item, snapshot, threadId, toolbar, path, setPath, t
     <ErrorBox error={detail.error || stats.error} t={t} />
     {detail.stale && data && <Notice>{t.stale}</Notice>}
     {detail.loading && <Notice>{t.loading}</Notice>}
+    {progress && <section className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-2"><h3 className={sectionLabel}>{t.taskProgress}</h3><span className="text-xs font-medium tabular-nums">{progress.total ? `${progress.complete} ${t.of} ${progress.total}` : t.noTasks}</span></div>
+      {progress.total > 0 && <div className="h-1.5 rounded-full bg-muted" role="progressbar" aria-label={t.taskProgress} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.complete}><div className="h-1.5 rounded-full bg-primary" style={{ width: `${progress.complete / progress.total * 100}%` }} /></div>}
+      {data?.sections && <ul className="mt-1 flex flex-col gap-1.5">{data.sections.map((s, i) => <li key={i} className="flex items-center gap-2"><span className="min-w-0 flex-1 break-words">{s.title}</span><span className={`text-xs tabular-nums ${s.complete === s.total ? "text-muted-foreground" : "font-medium"}`}>{s.complete}/{s.total}</span></li>)}</ul>}
+    </section>}
     {data && <section className="flex flex-col gap-2">
       <h3 className={sectionLabel}>{planning ? `${t.artifacts} · ${planning.complete}/${planning.total} ${t.artifactsReady}` : t.documents}</h3>
       {rows.length ? <ul className="divide-y divide-border overflow-hidden rounded-[10px] border border-border">{rows.map(r => {
@@ -183,11 +188,6 @@ function ItemDetail({ scope, item, snapshot, threadId, toolbar, path, setPath, t
           : <div className="flex items-center gap-2.5 px-3 py-2.5 text-muted-foreground">{content}</div>}</li>;
       })}</ul> : <Notice>{t.noDocuments}</Notice>}
       {planning && <p className="text-[11px] text-muted-foreground">{t.schemaNote}</p>}
-    </section>}
-    {progress && <section className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-2"><h3 className={sectionLabel}>{t.taskProgress}</h3><span className="text-xs font-medium tabular-nums">{progress.total ? `${progress.complete} ${t.of} ${progress.total}` : t.noTasks}</span></div>
-      {progress.total > 0 && <div className="h-1.5 rounded-full bg-muted" role="progressbar" aria-label={t.taskProgress} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.complete}><div className="h-1.5 rounded-full bg-primary" style={{ width: `${progress.complete / progress.total * 100}%` }} /></div>}
-      {data?.sections && <ul className="mt-1 flex flex-col gap-1.5">{data.sections.map((s, i) => <li key={i} className="flex items-center gap-2"><span className="min-w-0 flex-1 break-words">{s.title}</span><span className={`text-xs tabular-nums ${s.complete === s.total ? "text-muted-foreground" : "font-medium"}`}>{s.complete}/{s.total}</span></li>)}</ul>}
     </section>}
     {item.kind === "change" && <Mentions scope={scope} changeId={item.id} threadId={threadId} t={t} />}
     {affected.length > 0 && <section className="flex flex-col gap-2"><h3 className={sectionLabel}>{t.affects}</h3>

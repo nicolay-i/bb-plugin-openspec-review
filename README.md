@@ -17,7 +17,7 @@ Requirements:
 ## Use
 
 - **Chat header → OPS** (OpenSpec) opens the latest active change in a tab. The menu next to it picks another active change.
-- The tab lists specifications, active changes and the archive. A change card shows artifacts, task progress, affected specs and chats that mention the change.
+- The tab lists specifications, active changes and the archive. A change card shows task progress, artifacts, affected specs and chats that mention the change.
 - Markdown links into `openspec/` can open in the **OpenSpec review** file opener.
 - Select text and choose **Comment on selection**, or comment on the whole document. Comments are drafts until you choose **Send to chat**. Delivery queues behind active work; an unconfirmed delivery is not retried automatically.
 - The pinned header keeps one **‹ back** button: from a document to its card, from a card to the list. Document actions stay there while you scroll.

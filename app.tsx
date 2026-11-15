@@ -305,7 +305,7 @@ function HeaderAction({ threadId, isCompactViewport }: PluginThreadHeaderActionP
   if (!latest) return null;
   const open = (change: string) => panel.experimental_openTab({ surface: { kind: "current" }, tab: tabRef, params: { change }, title: `OpenSpec: ${change}` });
   return <div className="flex items-center gap-1">
-    <Button variant="ghost" size="sm" className="max-w-56" aria-label={`OpenSpec ${t.latest}: ${latest.name}`} onClick={() => open(latest.name)}><span className="truncate">{isCompactViewport ? "OpenSpec" : `OpenSpec: ${latest.name}`}</span></Button>
+    <Button variant="ghost" size="sm" className="max-w-56" aria-label={`OpenSpec ${t.latest}: ${latest.name}`} onClick={() => open(latest.name)}><span className="truncate">{isCompactViewport ? "OPS" : `OPS: ${latest.name}`}</span></Button>
     {changes.length > 1 && <span className="relative flex h-7 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted">▾<select aria-label={`OpenSpec: ${t.changes}`} className="absolute inset-0 cursor-pointer opacity-0" value="" onChange={e => e.target.value && open(e.target.value)}>
       <option value="" disabled>{t.changes}</option>
       {changes.map(c => <option key={c.name} value={c.name}>{c.name}{c.totalTasks ? ` · ${c.completedTasks}/${c.totalTasks}` : ""}</option>)}
